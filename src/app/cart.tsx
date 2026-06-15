@@ -11,7 +11,6 @@ export default function CartScreen() {
   const { state, removeItem, updateItemQuantity, clearCart } = useCart();
   const router = useRouter();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [orderMessage, setOrderMessage] = useState<string | null>(null);
   const theme = useTheme();
   const textStyle = { color: theme.text };
 
@@ -68,15 +67,12 @@ export default function CartScreen() {
                 style={{ borderColor: theme.backgroundSelected }}
                 disabled={isPlacingOrder}
                 onPress={async () => {
-                  setOrderMessage(null);
                   setIsPlacingOrder(true);
                   try {
-                    const result = await placeOrder(state.items);
-                    setOrderMessage(`Order placed: ${result.orderId}`);
+                    await placeOrder(state.items);
                     clearCart();
                   } catch (error) {
-                    const message = error instanceof Error ? error.message : 'Unable to place order.';
-                    setOrderMessage(message);
+                    console.error('Order failed:', error);
                   } finally {
                     setIsPlacingOrder(false);
                   }
@@ -86,9 +82,6 @@ export default function CartScreen() {
                   {isPlacingOrder ? 'Placing order…' : 'Place order'}
                 </Text>
               </OrderButton>
-              {orderMessage ? (
-                <Text style={[textStyle, { marginTop: 4, color: 'darkgreen' }]}>{orderMessage}</Text>
-              ) : null}
             </Summary>
           </>
         )}
