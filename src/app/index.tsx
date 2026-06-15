@@ -8,9 +8,6 @@ import { categories, fetchProducts, FetchProductsParams, Product } from '@/lib/p
 import { useCart } from '@/store/cart-context';
 import { useEffect, useRef, useState } from 'react';
 
-
-
-
 export default function HomeScreen() {
 
   const [page, setPage] = useState(1);
