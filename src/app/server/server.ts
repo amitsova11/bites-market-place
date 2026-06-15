@@ -143,6 +143,10 @@ export const categories = [
   ...Array.from(new Set(sampleData.map((product) => product.category))).sort(),
 ];
 
+export const fetchProductById = (id: string) => {
+  return sampleData.find((product) => product.id === id) ?? null;
+};
+
 export const fetchProducts = async ({search, category, sort, page = 1, limit = 10}: FetchProductsParams) => {
   // simulate network delay
   await new Promise((res) => setTimeout(res, 400));

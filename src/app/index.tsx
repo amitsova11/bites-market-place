@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { categories, fetchProducts, FetchProductsParams, Product } from './server/server';
 
@@ -22,6 +23,8 @@ export default function HomeScreen() {
 
   const [data, setData] = useState<Product[]>([]);
   const [category, setCategory] = useState<string>("All categories");
+  const [sort, setSort] = useState<FetchProductsParams['sort']>(undefined);
+  const router = useRouter();
 
   useEffect(() => {
     hasMoreRef.current = true;
@@ -30,14 +33,15 @@ export default function HomeScreen() {
       loadProducts({
         page: 1,
         search,
-        category
+        category,
+        sort,
       });
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [search, category]);
+  }, [search, category, sort]);
 
-  const loadProducts = async ({page, search, category}: FetchProductsParams) => {
+  const loadProducts = async ({page, search, category, sort}: FetchProductsParams) => {
           if (loadingRef.current || !hasMoreRef.current) return;
 
           loadingRef.current = true;
@@ -47,7 +51,8 @@ export default function HomeScreen() {
             page: page,
             limit: 4,
             search,
-            category
+            category,
+            sort,
           });
 
           if (page === 1) {
@@ -75,6 +80,24 @@ export default function HomeScreen() {
             placeholder="Search products..."
           />
           <View style={{marginBottom: 10}}/>
+          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Pressable
+              onPress={() => {
+                setSort((currentSort) =>
+                  currentSort === 'price_asc' ? 'price_desc' : 'price_asc'
+                );
+              }}
+              style={{
+                padding: 8,
+                backgroundColor: sort ? 'black' : 'lightgray',
+              }}
+            >
+              <Text style={{ color: sort ? 'white' : 'black' }}>
+                Sort price: {sort === 'price_asc' ? '↑' : sort === 'price_desc' ? '↓' : 'none'}
+              </Text>
+            </Pressable>
+          </View>
+          <View style={{marginBottom: 10}}/>
           <View style={{ flexDirection: "row", gap: 10, flexWrap: 'wrap' }}>
             {categories.map((c) => (
                 <Pressable
@@ -96,7 +119,11 @@ export default function HomeScreen() {
             data={data}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-              <View key={item.id} style={styles.product}>
+              <Pressable
+                key={item.id}
+                onPress={() => router.push(`/product/${item.id}`)}
+                style={styles.product}
+              >
                 <ThemedText style={{fontSize: 30}} >{item.label}</ThemedText>
                 <ThemedText >{item.description}</ThemedText>
                 <ThemedText style={{fontStyle: 'italic', color: '#c0c0c0'}}>
@@ -107,9 +134,9 @@ export default function HomeScreen() {
                 <ThemedText style={{color: item.stock ? 'green' : 'red' }} >
                   {item.stock ? "In stock" : "Out of stock"}
                 </ThemedText>
-              </View>
+              </Pressable>
       )}
-      onEndReached={() => loadProducts({page: page + 1, search, category})}
+      onEndReached={() => loadProducts({page: page + 1, search, category, sort})}
       onEndReachedThreshold={0.5}
       ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
     />
