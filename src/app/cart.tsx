@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 export default function CartScreen() {
-  const { state, removeItem, clearCart } = useCart();
+  const { state, removeItem, updateItemQuantity, clearCart } = useCart();
   const router = useRouter();
 
   const total = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -24,14 +24,28 @@ export default function CartScreen() {
           <>
             <FlatList
               data={state.items}
-              keyExtractor={(item) => item.cartItemId}
+              keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <View style={styles.item}>
                   <ThemedText style={styles.itemLabel}>{item.label}</ThemedText>
-                  <ThemedText>Qty: {item.quantity}</ThemedText>
+                  <View style={styles.quantityRow}>
+                    <Pressable
+                      onPress={() => updateItemQuantity(item.id, item.quantity - 1)}
+                      style={styles.quantityButton}
+                    >
+                      <ThemedText type="linkPrimary">−</ThemedText>
+                    </Pressable>
+                    <ThemedText style={styles.quantityValue}>{item.quantity}</ThemedText>
+                    <Pressable
+                      onPress={() => updateItemQuantity(item.id, item.quantity + 1)}
+                      style={styles.quantityButton}
+                    >
+                      <ThemedText type="linkPrimary">+</ThemedText>
+                    </Pressable>
+                  </View>
                   <ThemedText>Price: ${item.price}</ThemedText>
                   <Pressable
-                    onPress={() => removeItem(item.cartItemId)}
+                    onPress={() => removeItem(item.id)}
                     style={styles.removeButton}
                   >
                     <ThemedText type="linkPrimary">Remove</ThemedText>
@@ -78,6 +92,23 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   itemLabel: {
+    fontWeight: '700',
+  },
+  quantityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  quantityButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'lightgray',
+    borderRadius: 8,
+  },
+  quantityValue: {
+    minWidth: 28,
+    textAlign: 'center',
     fontWeight: '700',
   },
   removeButton: {
