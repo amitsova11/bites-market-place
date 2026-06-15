@@ -86,9 +86,6 @@ export default function CartScreen() {
                   {isPlacingOrder ? 'Placing order…' : 'Place order'}
                 </Text>
               </OrderButton>
-              {orderMessage ? (
-                <Text style={[textStyle, { marginTop: 4, color: 'darkgreen' }]}>{orderMessage}</Text>
-              ) : null}
             </Summary>
           </>
         )}
