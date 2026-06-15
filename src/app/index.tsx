@@ -1,61 +1,59 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+interface Product {
+  id: string;
+  label: string;
+  price: number;
+  description: string;
+  photoUrl: string;
+  rating: number;
+  stock: boolean;
 }
+
+const sampleData: Product[] = [
+  {
+    id: '1',
+    label: "Apple iPhone 17", 
+    price: 1000, description: "A phone that will steal your soul", 
+    photoUrl: "https://mtmobile28.co.il/wp-content/uploads/2026/03/%D7%90%D7%99%D7%99%D7%A4%D7%95%D7%9F-%D7%97%D7%93%D7%A9-Apple-iPhone-17-Pro-Max-512GB-%D7%90%D7%A4%D7%9C-%D7%96%D7%9E%D7%99%D7%9F-%D7%91%D7%9E%D7%9C%D7%90%D7%99.jpg",
+    rating: 5,
+    stock: true
+  }
+]
 
 export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
+        <ThemedView style={{padding: 24}}>
+          {sampleData.map((product) => 
+          <View key={product.id} style={
+              {
+                borderStyle:"solid", 
+                borderColor: "lightblue", 
+                borderWidth: 1, 
+                display: 'flex', 
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '5px',
+                padding: 24
+              }
+            }>
+            <ThemedText style={{fontSize: 30}} >{product.label}</ThemedText>
+            <ThemedText >{product.description}</ThemedText>
+            <ThemedText >Price: {product.price}$</ThemedText>
+            <ThemedText >Rating: {product.rating}</ThemedText>
+            <ThemedText style={{color: product.stock ? 'green' : 'red' }} >
+              {product.stock ? "In stock" : "Out of stock"}
+              </ThemedText>
+          </View>
+          )}
         </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
       </SafeAreaView>
     </ThemedView>
   );
