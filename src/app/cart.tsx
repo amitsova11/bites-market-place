@@ -1,13 +1,17 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { placeOrder } from '@/lib/order';
 import { useCart } from '@/store/cart-context';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 export default function CartScreen() {
   const { state, removeItem, updateItemQuantity, clearCart } = useCart();
   const router = useRouter();
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [orderMessage, setOrderMessage] = useState<string | null>(null);
 
   const total = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -56,9 +60,37 @@ export default function CartScreen() {
             />
             <View style={styles.summary}>
               <ThemedText style={styles.total}>Total: ${total.toFixed(2)}</ThemedText>
-              <Pressable onPress={() => clearCart()} style={styles.clearButton}>
+              <Pressable
+                onPress={() => clearCart()}
+                style={styles.clearButton}
+              >
                 <ThemedText type="linkPrimary">Clear cart</ThemedText>
               </Pressable>
+              <Pressable
+                disabled={isPlacingOrder}
+                onPress={async () => {
+                  setOrderMessage(null);
+                  setIsPlacingOrder(true);
+                  try {
+                    const result = await placeOrder(state.items);
+                    setOrderMessage(`Order placed: ${result.orderId}`);
+                    clearCart();
+                  } catch (error) {
+                    const message = error instanceof Error ? error.message : 'Unable to place order.';
+                    setOrderMessage(message);
+                  } finally {
+                    setIsPlacingOrder(false);
+                  }
+                }}
+                style={[styles.orderButton, isPlacingOrder && styles.disabledButton]}
+              >
+                <ThemedText type="linkPrimary">
+                  {isPlacingOrder ? 'Placing order…' : 'Place order'}
+                </ThemedText>
+              </Pressable>
+              {orderMessage ? (
+                <ThemedText style={styles.orderMessage}>{orderMessage}</ThemedText>
+              ) : null}
             </View>
           </>
         )}
@@ -125,5 +157,19 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     paddingVertical: 8,
+  },
+  orderButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'lightgray',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  orderMessage: {
+    marginTop: 4,
+    color: 'darkgreen',
   },
 });

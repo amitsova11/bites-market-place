@@ -14,8 +14,6 @@ import { useEffect, useRef, useState } from 'react';
 export default function HomeScreen() {
 
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
   const [search, setSearch] = useState("");
 
   const loadingRef = useRef(false);
@@ -29,7 +27,6 @@ export default function HomeScreen() {
 
   useEffect(() => {
     hasMoreRef.current = true;
-    setHasMore(true);
     const timeout = setTimeout(() => {
       loadProducts({
         page: 1,
@@ -46,7 +43,6 @@ export default function HomeScreen() {
           if (loadingRef.current || !hasMoreRef.current) return;
 
           loadingRef.current = true;
-          setLoading(true);
 
           const res = await fetchProducts({
             page: page,
@@ -63,11 +59,9 @@ export default function HomeScreen() {
           }
 
           hasMoreRef.current = res.hasMore;
-          setHasMore(res.hasMore);
           setPage(page || 1);
 
           loadingRef.current = false;
-          setLoading(false);
       }
 
   return (
