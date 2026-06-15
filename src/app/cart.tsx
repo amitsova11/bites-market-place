@@ -24,14 +24,14 @@ export default function CartScreen() {
           <>
             <FlatList
               data={state.items}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => item.cartItemId}
               renderItem={({ item }) => (
                 <View style={styles.item}>
                   <ThemedText style={styles.itemLabel}>{item.label}</ThemedText>
                   <ThemedText>Qty: {item.quantity}</ThemedText>
                   <ThemedText>Price: ${item.price}</ThemedText>
                   <Pressable
-                    onPress={() => removeItem(item.id)}
+                    onPress={() => removeItem(item.cartItemId)}
                     style={styles.removeButton}
                   >
                     <ThemedText type="linkPrimary">Remove</ThemedText>

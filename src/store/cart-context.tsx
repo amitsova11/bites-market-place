@@ -3,6 +3,7 @@ import { createContext, ReactNode, useContext, useReducer } from 'react';
 
 export interface CartItem extends Product {
   quantity: number;
+  cartItemId: string;
 }
 
 interface CartState {
@@ -21,30 +22,14 @@ const initialState: CartState = {
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const existingItem = state.items.find((item) => item.id === action.payload.id);
-      if (existingItem) {
-        return {
-          items: state.items.map((item) =>
-            item.id === action.payload.id ? { ...item, quantity: item.quantity + 1 } : item
-          ),
-        };
-      }
+      const cartItemId = `${action.payload.id}-${Date.now()}-${Math.random()}`;
       return {
-        items: [...state.items, { ...action.payload, quantity: 1 }],
+        items: [...state.items, { ...action.payload, quantity: 1, cartItemId }],
       };
     }
     case 'REMOVE_ITEM': {
-      const existingItem = state.items.find((item) => item.id === action.payload);
-      if (!existingItem) return state;
-      if (existingItem.quantity > 1) {
-        return {
-          items: state.items.map((item) =>
-            item.id === action.payload ? { ...item, quantity: item.quantity - 1 } : item
-          ),
-        };
-      }
       return {
-        items: state.items.filter((item) => item.id !== action.payload),
+        items: state.items.filter((item) => item.cartItemId !== action.payload),
       };
     }
     case 'CLEAR_CART':
