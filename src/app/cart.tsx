@@ -1,72 +1,71 @@
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { placeOrder } from '@/lib/order';
 import { useCart } from '@/store/cart-context';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
+import styled from 'styled-components/native';
 
 export default function CartScreen() {
   const { state, removeItem, updateItemQuantity, clearCart } = useCart();
   const router = useRouter();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderMessage, setOrderMessage] = useState<string | null>(null);
+  const theme = useTheme();
+  const textStyle = { color: theme.text };
 
   const total = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.safeArea}>
-        <Pressable onPress={() => router.push('/')} style={styles.backButton}>
-          <ThemedText type="linkPrimary">← Back to shop</ThemedText>
-        </Pressable>
-        <ThemedText type="title">Shopping Cart</ThemedText>
+    <Container style={{ backgroundColor: theme.background }}>
+      <SafeArea style={{ backgroundColor: theme.background }}>
+        <BackButton onPress={() => router.push('/')}>
+          <Text style={{ color: '#3c87f7' }}>← Back to shop</Text>
+        </BackButton>
+        <Text style={[textStyle, { fontSize: 48, lineHeight: 52, fontWeight: '600' }]}>Shopping Cart</Text>
         {state.items.length === 0 ? (
-          <ThemedText>Your cart is empty.</ThemedText>
+          <Text style={textStyle}>Your cart is empty.</Text>
         ) : (
           <>
             <FlatList
               data={state.items}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <View style={styles.item}>
-                  <ThemedText style={styles.itemLabel}>{item.label}</ThemedText>
-                  <View style={styles.quantityRow}>
-                    <Pressable
+                <Item style={{ backgroundColor: theme.backgroundElement }}>
+                  <Text style={[textStyle, { fontWeight: '700' }]}>{item.label}</Text>
+                  <QuantityRow>
+                    <QuantityButton
                       onPress={() => updateItemQuantity(item.id, item.quantity - 1)}
-                      style={styles.quantityButton}
                     >
-                      <ThemedText type="linkPrimary">−</ThemedText>
-                    </Pressable>
-                    <ThemedText style={styles.quantityValue}>{item.quantity}</ThemedText>
-                    <Pressable
+                      <Text style={{ color: '#3c87f7' }}>−</Text>
+                    </QuantityButton>
+                    <Text style={[textStyle, { minWidth: 28, textAlign: 'center', fontWeight: '700' }]}> 
+                      {item.quantity}
+                    </Text>
+                    <QuantityButton
                       onPress={() => updateItemQuantity(item.id, item.quantity + 1)}
-                      style={styles.quantityButton}
                     >
-                      <ThemedText type="linkPrimary">+</ThemedText>
-                    </Pressable>
-                  </View>
-                  <ThemedText>Price: ${item.price}</ThemedText>
-                  <Pressable
-                    onPress={() => removeItem(item.id)}
-                    style={styles.removeButton}
-                  >
-                    <ThemedText type="linkPrimary">Remove</ThemedText>
+                      <Text style={{ color: '#3c87f7' }}>+</Text>
+                    </QuantityButton>
+                  </QuantityRow>
+                  <Text style={textStyle}>Price: ${item.price}</Text>
+                  <Pressable onPress={() => removeItem(item.id)}>
+                    <Text style={{ color: '#3c87f7' }}>Remove</Text>
                   </Pressable>
-                </View>
+                </Item>
               )}
-              ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+              ItemSeparatorComponent={() => <Spacer />}
             />
-            <View style={styles.summary}>
-              <ThemedText style={styles.total}>Total: ${total.toFixed(2)}</ThemedText>
-              <Pressable
-                onPress={() => clearCart()}
-                style={styles.clearButton}
-              >
-                <ThemedText type="linkPrimary">Clear cart</ThemedText>
+            <Summary>
+              <Text style={[textStyle, { fontWeight: '700', fontSize: 18 }]}>
+                Total: ${total.toFixed(2)}
+              </Text>
+              <Pressable onPress={() => clearCart()}>
+                <Text style={{ color: '#3c87f7' }}>Clear cart</Text>
               </Pressable>
-              <Pressable
+              <OrderButton
+                style={{ borderColor: theme.backgroundSelected }}
                 disabled={isPlacingOrder}
                 onPress={async () => {
                   setOrderMessage(null);
@@ -82,94 +81,78 @@ export default function CartScreen() {
                     setIsPlacingOrder(false);
                   }
                 }}
-                style={[styles.orderButton, isPlacingOrder && styles.disabledButton]}
               >
-                <ThemedText type="linkPrimary">
+                <Text style={{ color: '#3c87f7' }}>
                   {isPlacingOrder ? 'Placing order…' : 'Place order'}
-                </ThemedText>
-              </Pressable>
+                </Text>
+              </OrderButton>
               {orderMessage ? (
-                <ThemedText style={styles.orderMessage}>{orderMessage}</ThemedText>
+                <Text style={[textStyle, { marginTop: 4, color: 'darkgreen' }]}>{orderMessage}</Text>
               ) : null}
-            </View>
+            </Summary>
           </>
         )}
-      </View>
-    </ThemedView>
+      </SafeArea>
+    </Container>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    padding: 24,
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-    alignSelf: 'center',
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  item: {
-    borderWidth: 1,
-    borderColor: 'lightgray',
-    borderRadius: 10,
-    padding: 16,
-    gap: 8,
-  },
-  itemLabel: {
-    fontWeight: '700',
-  },
-  quantityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  quantityButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: 'lightgray',
-    borderRadius: 8,
-  },
-  quantityValue: {
-    minWidth: 28,
-    textAlign: 'center',
-    fontWeight: '700',
-  },
-  removeButton: {
-    marginTop: 8,
-  },
-  summary: {
-    marginTop: 16,
-    alignItems: 'flex-start',
-    gap: 8,
-  },
-  total: {
-    fontWeight: '700',
-    fontSize: 18,
-  },
-  clearButton: {
-    paddingVertical: 8,
-  },
-  orderButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'lightgray',
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  orderMessage: {
-    marginTop: 4,
-    color: 'darkgreen',
-  },
-});
+const Container = styled(View)`
+  flex: 1;
+`;
+
+const SafeArea = styled.View`
+  flex: 1;
+  padding: 24px;
+  gap: ${Spacing.three}px;
+  padding-bottom: ${BottomTabInset + Spacing.three}px;
+  max-width: ${MaxContentWidth}px;
+  align-self: center;
+`;
+
+const BackButton = styled.Pressable`
+  align-self: flex-start;
+  padding-vertical: 8px;
+  padding-horizontal: 12px;
+`;
+
+const Item = styled.View`
+  border-width: 1px;
+  border-color: lightgray;
+  border-radius: 10px;
+  padding: 16px;
+  gap: 8px;
+`;
+
+const QuantityRow = styled.View`
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+`;
+
+const QuantityButton = styled.Pressable`
+  padding-vertical: 6px;
+  padding-horizontal: 12px;
+  border-width: 1px;
+  border-color: lightgray;
+  border-radius: 8px;
+`;
+
+const Summary = styled.View`
+  margin-top: 16px;
+  align-items: flex-start;
+  gap: 8px;
+`;
+
+const OrderButton = styled.Pressable<{ disabled: boolean }>`
+  padding-vertical: 10px;
+  padding-horizontal: 16px;
+  border-radius: 10px;
+  border-width: 1px;
+  border-color: lightgray;
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
+`;
+
+const Spacer = styled.View`
+  height: 12px;
+`;
